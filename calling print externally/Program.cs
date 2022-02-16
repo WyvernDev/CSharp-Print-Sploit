@@ -9,7 +9,7 @@ namespace calling_print_externally
 {
     internal class Program
     {
-        public const int print_address = 0x7486E0;
+        public const int print_address = 0x5F2820;
         public static IntPtr handle;
         public static int base_addr;
 
