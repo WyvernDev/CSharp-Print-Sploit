@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace calling_print_externally
 {
@@ -16,11 +14,6 @@ namespace calling_print_externally
         public static int aslr(int addr)
         {
             return ((addr - 0x400000) + base_addr);
-        }
-
-        public static IntPtr GetBaseAddress(Process proc)
-        {
-            return proc.MainModule.BaseAddress;
         }
 
         public static int get_relative(int func, int loc)
@@ -36,6 +29,7 @@ namespace calling_print_externally
         static void inject_code_and_print(int type, string text)
         {
             var shellcode_mem = winapi_functions.VirtualAllocEx(handle, IntPtr.Zero, (uint)shellcode.total_bytes, winapi_functions.MEM_COMMIT | winapi_functions.MEM_RESERVE, winapi_functions.PAGE_EXECUTE_READWRITE);
+            Console.WriteLine(Marshal.GetLastWin32Error());
             var string_mem = winapi_functions.VirtualAllocEx(handle, IntPtr.Zero, (uint)text.Length, winapi_functions.MEM_COMMIT | winapi_functions.MEM_RESERVE, winapi_functions.PAGE_EXECUTE_READWRITE);
 
             wpm(shellcode_mem, shellcode.data);
@@ -60,14 +54,21 @@ namespace calling_print_externally
             Console.Title = "External printsploit in C#";
 
             var rbx_processes = Process.GetProcessesByName("RobloxPlayerBeta");
+            Process main_proc = null;
+            
+            foreach (var rbx in rbx_processes)
+            {
+                if (rbx.MainWindowHandle != null)
+                {
+                    main_proc = rbx;
+                    break;
+                }
+            }
 
-            if (rbx_processes.Length != 1)
-                return;
+            var proc_id = main_proc.Id;
+            base_addr = main_proc.MainModule.BaseAddress.ToInt32();
 
-            var proc_id = rbx_processes[0].Id;
-            base_addr = GetBaseAddress(rbx_processes[0]).ToInt32();
-
-            Program.handle = winapi_functions.OpenProcess(winapi_functions.PROCESS_CREATE_THREAD | winapi_functions.PROCESS_QUERY_INFORMATION | winapi_functions.PROCESS_VM_OPERATION | winapi_functions.PROCESS_VM_WRITE | winapi_functions.PROCESS_VM_READ,
+            handle = winapi_functions.OpenProcess(winapi_functions.PROCESS_CREATE_THREAD | winapi_functions.PROCESS_VM_OPERATION | winapi_functions.PROCESS_VM_WRITE | winapi_functions.PROCESS_VM_READ,
                 false, proc_id);
 
             while (true)
