@@ -29,7 +29,6 @@ namespace calling_print_externally
         static void inject_code_and_print(int type, string text)
         {
             var shellcode_mem = winapi_functions.VirtualAllocEx(handle, IntPtr.Zero, (uint)shellcode.total_bytes, winapi_functions.MEM_COMMIT | winapi_functions.MEM_RESERVE, winapi_functions.PAGE_EXECUTE_READWRITE);
-            Console.WriteLine(Marshal.GetLastWin32Error());
             var string_mem = winapi_functions.VirtualAllocEx(handle, IntPtr.Zero, (uint)text.Length, winapi_functions.MEM_COMMIT | winapi_functions.MEM_RESERVE, winapi_functions.PAGE_EXECUTE_READWRITE);
 
             wpm(shellcode_mem, shellcode.data);
